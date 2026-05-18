@@ -1,7 +1,8 @@
 'use client'
 
 import { usePathname, useRouter } from 'next/navigation'
-import { Bell, LogOut, UserCircle } from 'lucide-react'
+import { LogOut, UserCircle } from 'lucide-react'
+import { NotificationDropdown } from './NotificationDropdown'
 import { useAuthStore } from '@/lib/stores/authStore'
 import { logout as logoutApi } from '@/lib/api/auth'
 import { cn } from '@/lib/utils'
@@ -84,9 +85,7 @@ export function Header({ className }: HeaderProps) {
 
       {/* Right side */}
       <div className="flex items-center gap-2">
-        <button className="relative rounded-lg p-2 hover:bg-muted transition-colors">
-          <Bell className="h-5 w-5 text-muted-foreground" />
-        </button>
+        <NotificationDropdown />
 
         {admin && (
           <DropdownMenu>
