@@ -12,7 +12,6 @@ export function QueryProvider({ children }: { children: ReactNode }) {
             staleTime: 1000 * 60 * 2,    // 2 min fresh window
             gcTime: 1000 * 60 * 10,       // 10 min cache retention
             refetchOnWindowFocus: false,  // don't refetch on tab/devtools switch
-            refetchOnMount: false,        // use cached data when navigating back
             retry: 1,
           },
         },

@@ -1,6 +1,6 @@
 'use client'
 
-import { useCallback, useState } from 'react'
+import { useCallback, useEffect, useRef, useState } from 'react'
 import { useDropzone } from 'react-dropzone'
 import { X, Star, Upload, Loader2 } from 'lucide-react'
 import { cn } from '@/lib/utils'
@@ -19,13 +19,23 @@ interface UploadingFile {
 
 export function ProductImageManager({ images, onChange }: ProductImageManagerProps) {
   const [uploading, setUploading] = useState<UploadingFile[]>([])
+  // Track all object URLs created so they can be revoked on unmount
+  const previewUrlsRef = useRef<string[]>([])
+
+  useEffect(() => {
+    return () => {
+      // Revoke all remaining preview object URLs to avoid memory leaks
+      previewUrlsRef.current.forEach((url) => URL.revokeObjectURL(url))
+    }
+  }, [])
 
   const onDrop = useCallback(
     async (acceptedFiles: File[]) => {
-      const newUploading = acceptedFiles.map((file) => ({
-        id: Math.random().toString(36).slice(2),
-        preview: URL.createObjectURL(file),
-      }))
+      const newUploading = acceptedFiles.map((file) => {
+        const preview = URL.createObjectURL(file)
+        previewUrlsRef.current.push(preview)
+        return { id: Math.random().toString(36).slice(2), preview }
+      })
       setUploading((prev) => [...prev, ...newUploading])
 
       // Collect all uploaded URLs before calling onChange once — avoids stale closure
@@ -38,6 +48,11 @@ export function ProductImageManager({ images, onChange }: ProductImageManagerPro
           } catch {
             toast.error(`Tải lên thất bại: ${file.name}`)
           } finally {
+            // Revoke the object URL once it's no longer needed
+            URL.revokeObjectURL(newUploading[i].preview)
+            previewUrlsRef.current = previewUrlsRef.current.filter(
+              (u) => u !== newUploading[i].preview,
+            )
             setUploading((prev) => prev.filter((u) => u.id !== newUploading[i].id))
           }
         }),

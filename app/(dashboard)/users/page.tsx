@@ -186,6 +186,7 @@ function UsersContent() {
         description="Người dùng sẽ không thể đăng nhập sau khi bị khóa."
         confirmLabel="Khóa tài khoản"
         destructive
+        isPending={banUser.isPending}
         onConfirm={() => {
           if (banTarget) {
             banUser.mutate({ id: banTarget.id, reason: banReason || 'Vi phạm điều khoản' })
@@ -193,7 +194,19 @@ function UsersContent() {
             setBanReason('')
           }
         }}
-      />
+      >
+        <div className="mt-3">
+          <label className="text-sm font-medium block mb-1">
+            Lý do khóa tài khoản
+          </label>
+          <textarea
+            value={banReason}
+            onChange={(e) => setBanReason(e.target.value)}
+            placeholder="Nhập lý do..."
+            className="w-full rounded-lg border px-3 py-2 text-sm resize-none h-20 focus:outline-none focus:ring-2 focus:ring-primary/40"
+          />
+        </div>
+      </ConfirmDialog>
 
       {/* Unban dialog */}
       <ConfirmDialog
@@ -202,6 +215,7 @@ function UsersContent() {
         title={`Mở khóa tài khoản: ${unbanTarget?.name}`}
         description="Người dùng sẽ có thể đăng nhập lại sau khi được mở khóa."
         confirmLabel="Mở khóa"
+        isPending={unbanUser.isPending}
         onConfirm={() => {
           if (unbanTarget) {
             unbanUser.mutate(unbanTarget.id)

@@ -29,6 +29,7 @@ function OrdersContent() {
     from: searchParams.get('from') ?? undefined,
     to: searchParams.get('to') ?? undefined,
     q: searchParams.get('q') ?? undefined,
+    paymentMethod: searchParams.get('paymentMethod') ?? undefined,
   }
 
   const { data, isLoading } = useOrders(filters)

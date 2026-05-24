@@ -45,7 +45,11 @@ apiClient.interceptors.response.use(
       _retry?: boolean
     }
 
-    if (error.response?.status === 401 && !originalRequest._retry) {
+    const isAuthEndpoint =
+      originalRequest.url?.includes('/auth/login') ||
+      originalRequest.url?.includes('/auth/refresh')
+
+    if (error.response?.status === 401 && !originalRequest._retry && !isAuthEndpoint) {
       if (isRefreshing) {
         return new Promise((resolve, reject) => {
           failedQueue.push({ resolve, reject })
@@ -67,7 +71,16 @@ apiClient.interceptors.response.use(
           { withCredentials: true }
         )
         const newToken = response.data.data.accessToken
-        useAuthStore.getState().setAuth(useAuthStore.getState().admin!, newToken)
+        const admin = useAuthStore.getState().admin
+        if (!admin) {
+          // Admin state was lost (e.g. another tab cleared storage) — force logout
+          useAuthStore.getState().logout()
+          if (typeof window !== 'undefined') {
+            window.location.href = '/login'
+          }
+          return Promise.reject(new Error('Session expired'))
+        }
+        useAuthStore.getState().setAuth(admin, newToken)
         processQueue(null, newToken)
         originalRequest.headers.Authorization = `Bearer ${newToken}`
         return apiClient(originalRequest)

@@ -5,7 +5,6 @@ import { useRouter, useSearchParams } from 'next/navigation'
 import { type ColumnDef } from '@tanstack/react-table'
 import { Plus, Pencil, Trash2 } from 'lucide-react'
 import Image from 'next/image'
-import { toast } from 'sonner'
 import { Button } from '@/components/ui/button'
 import { Switch } from '@/components/ui/switch'
 import { DataTable } from '@/components/shared/DataTable'
@@ -145,7 +144,7 @@ function ProductsContent() {
       await deleteProduct.mutateAsync(deleteId)
       setDeleteId(null)
     } catch {
-      toast.error('Xóa sản phẩm thất bại')
+      // error toast is handled by useDeleteProduct's onError — do not show a second toast
     }
   }
 
@@ -195,6 +194,7 @@ function ProductsContent() {
         description="Bạn có chắc chắn muốn xóa sản phẩm này? Thao tác này không thể hoàn tác."
         confirmLabel="Xóa"
         destructive
+        isPending={deleteProduct.isPending}
         onConfirm={handleDelete}
       />
     </div>

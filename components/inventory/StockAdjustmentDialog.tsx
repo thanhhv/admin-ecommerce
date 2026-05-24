@@ -18,10 +18,10 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { useAdjustInventory } from '@/lib/hooks/useInventory'
 
 const schema = z.object({
-  quantityChange: z
-    .number()
+  newStock: z
+    .number({ invalid_type_error: 'Phải là số' })
     .int('Phải là số nguyên')
-    .refine((v) => v !== 0, 'Không thể bằng 0'),
+    .min(0, 'Tồn kho không thể âm'),
   reason: z.string().min(1, 'Vui lòng chọn lý do'),
 })
 
@@ -61,16 +61,15 @@ export function StockAdjustmentDialog({
     formState: { errors },
   } = useForm<FormValues>({
     resolver: zodResolver(schema),
-    defaultValues: { quantityChange: 0, reason: '' },
+    defaultValues: { newStock: currentStock, reason: '' },
   })
 
-  const quantityChange = watch('quantityChange') || 0
-  const newStock = currentStock + Number(quantityChange)
+  const newStockValue = watch('newStock') ?? currentStock
 
   const onSubmit = async (data: FormValues) => {
     await adjustInventory.mutateAsync({
       productId,
-      quantityChange: data.quantityChange,
+      quantityChange: data.newStock - currentStock,
       reason: data.reason,
     })
     reset()
@@ -93,8 +92,8 @@ export function StockAdjustmentDialog({
           <span className="text-2xl font-bold">
             {currentStock}{' '}
             <span className="text-muted-foreground text-base">→</span>{' '}
-            <span className={newStock < 0 ? 'text-destructive' : newStock <= 10 ? 'text-yellow-600' : 'text-primary'}>
-              {Math.max(0, newStock)}
+            <span className={newStockValue < 0 ? 'text-destructive' : newStockValue <= 10 ? 'text-yellow-600' : 'text-primary'}>
+              {newStockValue}
             </span>
           </span>
           <p className="text-xs text-muted-foreground mt-1">Tồn kho hiện tại → Sau điều chỉnh</p>
@@ -102,14 +101,15 @@ export function StockAdjustmentDialog({
 
         <form onSubmit={handleSubmit(onSubmit)} className="space-y-4 mt-2">
           <div className="space-y-2">
-            <Label>Số lượng thay đổi</Label>
+            <Label>Số lượng mới</Label>
             <Input
               type="number"
-              placeholder="+10 hoặc -5"
-              {...register('quantityChange', { valueAsNumber: true })}
+              min={0}
+              placeholder={String(currentStock)}
+              {...register('newStock', { valueAsNumber: true })}
             />
-            {errors.quantityChange && (
-              <p className="text-sm text-destructive">{errors.quantityChange.message}</p>
+            {errors.newStock && (
+              <p className="text-sm text-destructive">{errors.newStock.message}</p>
             )}
           </div>
 

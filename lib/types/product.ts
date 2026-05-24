@@ -9,6 +9,7 @@ export interface Category {
 export interface Product {
   id: string
   name: string
+  slug?: string
   categoryId: string
   category?: Category
   basePrice: number
@@ -33,6 +34,7 @@ export interface ProductFilters {
 
 export interface CreateProductDto {
   name: string
+  slug?: string
   categoryId: string
   basePrice: number
   salePrice?: number
@@ -40,10 +42,12 @@ export interface CreateProductDto {
   brand?: string
   description?: string
   images?: string[]
+  isActive?: boolean
 }
 
 export interface UpdateProductDto {
   name?: string
+  slug?: string
   categoryId?: string
   basePrice?: number
   salePrice?: number

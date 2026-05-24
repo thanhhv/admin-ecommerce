@@ -198,7 +198,8 @@ export default function CategoriesPage() {
         description="Bạn có chắc chắn muốn xóa danh mục này?"
         confirmLabel="Xóa"
         destructive
-        onConfirm={() => deleteId && deleteMutation.mutate(deleteId)}
+        isPending={deleteMutation.isPending}
+        onConfirm={() => { if (deleteId) deleteMutation.mutate(deleteId) }}
       />
     </div>
   )

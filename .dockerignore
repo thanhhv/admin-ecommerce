@@ -1,0 +1,28 @@
+# Dependencies
+node_modules
+
+# Build output
+.next
+out
+
+# Environment files — injected as build args, never baked from file
+.env
+.env.*
+!.env.example
+
+# Editor / OS
+.DS_Store
+.vscode
+*.swp
+
+# Git
+.git
+.gitignore
+
+# Docker files themselves
+Dockerfile
+.dockerignore
+
+# Logs
+*.log
+npm-debug.log*

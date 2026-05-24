@@ -7,6 +7,8 @@ interface AdminUser {
   id: string
   name: string
   email: string
+  // TODO: requires BE to return role in login response
+  role?: string
 }
 
 interface AuthStore {
@@ -24,8 +26,18 @@ export const useAuthStore = create<AuthStore>()(
       admin: null,
       accessToken: null,
       _hasHydrated: false,
-      setAuth: (admin, token) => set({ admin, accessToken: token }),
-      logout: () => set({ admin: null, accessToken: null }),
+      setAuth: (admin, token) => {
+        if (typeof window !== 'undefined') {
+          document.cookie = 'admin-session=1; path=/; SameSite=Strict'
+        }
+        set({ admin, accessToken: token })
+      },
+      logout: () => {
+        if (typeof window !== 'undefined') {
+          document.cookie = 'admin-session=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT; SameSite=Strict'
+        }
+        set({ admin: null, accessToken: null })
+      },
       setHasHydrated: (v) => set({ _hasHydrated: v }),
     }),
     {

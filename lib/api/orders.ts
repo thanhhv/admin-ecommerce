@@ -15,6 +15,7 @@ export async function listOrders(filters: OrderFilters): Promise<OrderListData> 
   if (filters.from) params.from = filters.from
   if (filters.to) params.to = filters.to
   if (filters.q) params.q = filters.q
+  if (filters.paymentMethod) params.paymentMethod = filters.paymentMethod
 
   const res = await apiClient.get<{ data: Order[]; pagination: Pagination }>(
     '/api/v1/admin/orders',

@@ -6,6 +6,8 @@ interface LoginResponse {
     id: string
     name: string
     email: string
+    // TODO: requires BE to return role in login response
+    role?: string
   }
 }
 

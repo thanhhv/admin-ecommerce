@@ -41,8 +41,15 @@ export async function listInventory(filters: InventoryFilters): Promise<Inventor
   if (filters.limit) params.limit = filters.limit
   if (filters.search) params.search = filters.search
 
-  const res = await apiClient.get<{ data: InventoryListData }>('/api/v1/admin/inventory', { params })
-  return res.data.data
+  // API envelope: { success, data: InventoryItem[], pagination: {...} }
+  const res = await apiClient.get<{ data: InventoryItem[]; pagination: Pagination }>(
+    '/api/v1/admin/inventory',
+    { params },
+  )
+  return {
+    items: res.data.data,
+    pagination: res.data.pagination,
+  }
 }
 
 export async function adjustInventory(
@@ -56,9 +63,13 @@ export async function getInventoryHistory(
   productId: string,
   params?: { page?: number; limit?: number }
 ): Promise<InventoryHistoryData> {
-  const res = await apiClient.get<{ data: InventoryHistoryData }>(
+  // API envelope: { success, data: InventoryHistoryItem[], pagination: {...} }
+  const res = await apiClient.get<{ data: InventoryHistoryItem[]; pagination: Pagination }>(
     `/api/v1/admin/inventory/${productId}/history`,
-    { params }
+    { params },
   )
-  return res.data.data
+  return {
+    history: res.data.data,
+    pagination: res.data.pagination,
+  }
 }

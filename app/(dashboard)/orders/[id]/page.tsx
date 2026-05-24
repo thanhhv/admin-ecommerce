@@ -2,6 +2,7 @@
 
 import { useParams, useRouter } from 'next/navigation'
 import { ArrowLeft } from 'lucide-react'
+import { toast } from 'sonner'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { StatusBadge } from '@/components/shared/StatusBadge'
@@ -28,7 +29,7 @@ export default function OrderDetailPage() {
   const router = useRouter()
   const id = params.id as string
 
-  const { data: order, isLoading } = useOrder(id)
+  const { data: order, isLoading, isError, refetch } = useOrder(id)
   const updateStatus = useUpdateOrderStatus()
   const [cancelOpen, setCancelOpen] = useState(false)
 
@@ -41,8 +42,29 @@ export default function OrderDetailPage() {
     )
   }
 
+  if (isError) {
+    return (
+      <div className="max-w-4xl mx-auto px-4 py-16 text-center">
+        <p className="text-muted-foreground mb-4">Có lỗi xảy ra khi tải đơn hàng.</p>
+        <button
+          onClick={() => refetch()}
+          className="text-primary underline text-sm"
+        >
+          Thử lại
+        </button>
+      </div>
+    )
+  }
+
   if (!order) {
-    return <p className="text-muted-foreground">Không tìm thấy đơn hàng</p>
+    return (
+      <div className="max-w-4xl mx-auto px-4 py-16 text-center">
+        <p className="text-muted-foreground mb-4">Không tìm thấy đơn hàng.</p>
+        <a href="/orders" className="text-primary text-sm underline">
+          ← Quay lại danh sách đơn hàng
+        </a>
+      </div>
+    )
   }
 
   const nextAction = nextStatusMap[order.status]
@@ -208,9 +230,16 @@ export default function OrderDetailPage() {
         description="Bạn có chắc muốn hủy đơn hàng này? Thao tác này không thể hoàn tác."
         confirmLabel="Hủy đơn"
         destructive
-        onConfirm={() => {
-          updateStatus.mutate({ id: order.id, status: 'CANCELLED' })
-          setCancelOpen(false)
+        isLoading={updateStatus.isPending}
+        onConfirm={async () => {
+          try {
+            await updateStatus.mutateAsync({ id: order.id, status: 'CANCELLED' })
+            setCancelOpen(false) // only close on success
+            toast.success('Đã huỷ đơn hàng')
+          } catch {
+            toast.error('Không thể huỷ đơn hàng, vui lòng thử lại')
+            // dialog stays open — do NOT call setCancelOpen(false) here
+          }
         }}
       />
     </div>

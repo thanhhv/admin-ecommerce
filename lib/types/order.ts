@@ -41,6 +41,7 @@ export interface OrderFilters {
   from?: string
   to?: string
   q?: string
+  paymentMethod?: string
 }
 
 export interface OrderListResponse {

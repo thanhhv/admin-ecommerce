@@ -25,19 +25,41 @@ const breadcrumbMap: Record<string, string> = {
   '/users': 'Người dùng',
 }
 
+const segmentLabelMap: Record<string, string> = {
+  products: 'Sản phẩm',
+  orders: 'Đơn hàng',
+  categories: 'Danh mục',
+  inventory: 'Kho hàng',
+  users: 'Người dùng',
+}
+
+const uuidDetailLabelMap: Record<string, string> = {
+  products: 'Chi tiết sản phẩm',
+  orders: 'Chi tiết đơn hàng',
+}
+
+function isUUID(str: string): boolean {
+  return /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(str)
+}
+
 function getBreadcrumb(pathname: string): string[] {
   const parts = pathname.split('/').filter(Boolean)
   const crumbs: string[] = ['Trang chủ']
 
   let current = ''
+  let prevSegment = ''
   for (const part of parts) {
     current += `/${part}`
     const label = breadcrumbMap[current]
     if (label) {
       crumbs.push(label)
+    } else if (isUUID(part)) {
+      const detail = uuidDetailLabelMap[prevSegment] ?? 'Chi tiết'
+      crumbs.push(detail)
     } else {
-      crumbs.push(part)
+      crumbs.push(segmentLabelMap[part] ?? part)
     }
+    prevSegment = part
   }
 
   return crumbs

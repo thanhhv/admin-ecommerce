@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect } from 'react'
+import { useEffect, useState } from 'react'
 import { useForm, Controller } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { z } from 'zod'
@@ -18,6 +18,7 @@ import type { Product } from '@/lib/types/product'
 
 const productSchema = z.object({
   name: z.string().min(1, 'Tên sản phẩm không được để trống'),
+  slug: z.string().optional(),
   categoryId: z.string().min(1, 'Vui lòng chọn danh mục'),
   basePrice: z.number().min(1000, 'Giá gốc tối thiểu 1,000 VND'),
   salePrice: z.number().optional(),
@@ -53,6 +54,7 @@ export function ProductForm({ product, mode }: ProductFormProps) {
     resolver: zodResolver(productSchema),
     defaultValues: {
       name: product?.name ?? '',
+      slug: product?.slug ?? '',
       categoryId: product?.categoryId ?? '',
       basePrice: product?.basePrice ?? 0,
       salePrice: product?.salePrice,
@@ -65,35 +67,61 @@ export function ProductForm({ product, mode }: ProductFormProps) {
   })
 
   const images = watch('images') ?? []
+  const nameValue = watch('name')
+  const [slugManuallyEdited, setSlugManuallyEdited] = useState(false)
+
+  useEffect(() => {
+    if (!slugManuallyEdited && nameValue) {
+      const timer = setTimeout(() => {
+        const autoSlug = nameValue
+          .toLowerCase()
+          .normalize('NFD')
+          .replace(/[̀-ͯ]/g, '')
+          .replace(/đ/g, 'd')
+          .replace(/[^a-z0-9\s-]/g, '')
+          .trim()
+          .replace(/\s+/g, '-')
+        setValue('slug', autoSlug)
+      }, 500)
+      return () => clearTimeout(timer)
+    }
+  }, [nameValue, slugManuallyEdited, setValue])
 
   const onSubmit = async (data: FormValues) => {
-    if (mode === 'create') {
-      await createProduct.mutateAsync({
-        name: data.name,
-        categoryId: data.categoryId,
-        basePrice: data.basePrice,
-        salePrice: data.salePrice,
-        stock: data.stock,
-        brand: data.brand,
-        description: data.description,
-        images: data.images,
-      })
-      router.push('/products')
-    } else if (product) {
-      await updateProduct.mutateAsync({
-        id: product.id,
-        dto: {
+    try {
+      if (mode === 'create') {
+        await createProduct.mutateAsync({
           name: data.name,
+          slug: data.slug,
           categoryId: data.categoryId,
           basePrice: data.basePrice,
           salePrice: data.salePrice,
           stock: data.stock,
           brand: data.brand,
           description: data.description,
+          images: data.images,
           isActive: data.isActive,
-        },
-      })
-      await setImages.mutateAsync({ id: product.id, urls: data.images ?? [] })
+        })
+        router.push('/products')
+      } else if (product) {
+        await updateProduct.mutateAsync({
+          id: product.id,
+          dto: {
+            name: data.name,
+            slug: data.slug,
+            categoryId: data.categoryId,
+            basePrice: data.basePrice,
+            salePrice: data.salePrice,
+            stock: data.stock,
+            brand: data.brand,
+            description: data.description,
+            isActive: data.isActive,
+          },
+        })
+        await setImages.mutateAsync({ id: product.id, urls: data.images ?? [] })
+      }
+    } catch {
+      // error toasts are handled by each hook's onError; catch here to prevent unhandled rejection
     }
   }
 
@@ -112,6 +140,16 @@ export function ProductForm({ product, mode }: ProductFormProps) {
             <Label htmlFor="name">Tên sản phẩm <span className="text-red-500">*</span></Label>
             <Input id="name" {...register('name')} />
             {errors.name && <p className="text-sm text-destructive">{errors.name.message}</p>}
+          </div>
+
+          <div className="flex flex-col gap-1">
+            <Label htmlFor="slug">Slug (URL)</Label>
+            <Input
+              id="slug"
+              {...register('slug', { onChange: () => setSlugManuallyEdited(true) })}
+              placeholder="tu-dong-tao-tu-ten-san-pham"
+            />
+            <p className="text-xs text-muted-foreground">Để trống để tự động tạo từ tên sản phẩm</p>
           </div>
 
           <div className="space-y-2">

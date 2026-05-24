@@ -8,12 +8,13 @@ import { Header } from '@/components/layout/Header'
 
 export default function DashboardLayout({ children }: { children: React.ReactNode }) {
   const router = useRouter()
-  const { accessToken, _hasHydrated } = useAuthStore()
+  const { admin, accessToken, _hasHydrated } = useAuthStore()
 
   useEffect(() => {
     if (!_hasHydrated) return
-    if (!accessToken) router.replace('/login')
-  }, [_hasHydrated, accessToken, router])
+    // TODO: requires BE to return role in login response
+    if (!accessToken || !admin) router.replace('/login')
+  }, [_hasHydrated, accessToken, admin, router])
 
   // Wait for localStorage to be read before deciding to redirect
   if (!_hasHydrated) {
@@ -24,7 +25,8 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
     )
   }
 
-  if (!accessToken) return null
+  // TODO: requires BE to return role in login response
+  if (!accessToken || !admin) return null
 
   return (
     <div className="fixed inset-0 flex overflow-hidden bg-muted/30">

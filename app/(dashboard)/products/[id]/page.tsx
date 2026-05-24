@@ -1,5 +1,6 @@
 'use client'
 
+import Link from 'next/link'
 import { useParams } from 'next/navigation'
 import { PageHeader } from '@/components/shared/PageHeader'
 import { ProductForm } from '@/components/products/ProductForm'
@@ -20,7 +21,14 @@ export default function EditProductPage() {
   }
 
   if (!product) {
-    return <p className="text-muted-foreground">Không tìm thấy sản phẩm</p>
+    return (
+      <div className="max-w-4xl mx-auto px-4 py-16 text-center">
+        <p className="text-muted-foreground mb-4">Không tìm thấy sản phẩm.</p>
+        <Link href="/products" className="text-primary text-sm underline">
+          ← Quay lại danh sách sản phẩm
+        </Link>
+      </div>
+    )
   }
 
   return (

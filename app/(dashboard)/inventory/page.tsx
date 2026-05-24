@@ -1,6 +1,6 @@
 'use client'
 
-import { Suspense, useState } from 'react'
+import { Suspense, useEffect, useRef, useState } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
 import { type ColumnDef } from '@tanstack/react-table'
 import { SlidersHorizontal } from 'lucide-react'
@@ -21,6 +21,9 @@ function InventoryContent() {
   const searchParams = useSearchParams()
   const [adjustItem, setAdjustItem] = useState<InventoryItem | null>(null)
   const [searchValue, setSearchValue] = useState(searchParams.get('search') ?? '')
+  const searchParamsRef = useRef(searchParams)
+  searchParamsRef.current = searchParams  // sync on every render — safe, no extra hook
+  const isMounted = useRef(false)
 
   const filters = {
     page: Number(searchParams.get('page') ?? 1),
@@ -95,17 +98,23 @@ function InventoryContent() {
   const items = data?.items ?? []
   const pagination = data?.pagination
 
-  const handleSearch = (value: string) => {
-    setSearchValue(value)
-    const params = new URLSearchParams(searchParams.toString())
-    if (value) {
-      params.set('search', value)
-    } else {
-      params.delete('search')
+  useEffect(() => {
+    if (!isMounted.current) {
+      isMounted.current = true
+      return
     }
-    params.set('page', '1')
-    router.push(`?${params.toString()}`)
-  }
+    const timer = setTimeout(() => {
+      const params = new URLSearchParams(searchParamsRef.current.toString())
+      if (searchValue) {
+        params.set('search', searchValue)
+      } else {
+        params.delete('search')
+      }
+      params.set('page', '1')
+      router.push(`?${params.toString()}`)
+    }, 400)
+    return () => clearTimeout(timer)
+  }, [searchValue, router])
 
   return (
     <div className="space-y-4">
@@ -119,7 +128,7 @@ function InventoryContent() {
           placeholder="Tìm kiếm sản phẩm..."
           className="max-w-xs"
           value={searchValue}
-          onChange={(e) => handleSearch(e.target.value)}
+          onChange={(e) => setSearchValue(e.target.value)}
         />
       </div>
 

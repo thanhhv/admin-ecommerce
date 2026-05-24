@@ -42,6 +42,7 @@ export async function getProduct(id: string): Promise<Product> {
 export async function createProduct(dto: CreateProductDto & { images?: string[] }): Promise<Product> {
   const formData = new FormData()
   formData.append('name', dto.name)
+  if (dto.slug) formData.append('slug', dto.slug)
   formData.append('categoryId', dto.categoryId)
   formData.append('basePrice', String(dto.basePrice))
   if (dto.salePrice !== undefined) formData.append('salePrice', String(dto.salePrice))
@@ -51,6 +52,7 @@ export async function createProduct(dto: CreateProductDto & { images?: string[] 
   if (dto.images) {
     dto.images.forEach((url) => formData.append('imageUrls', url))
   }
+  if (dto.isActive !== undefined) formData.append('isActive', String(dto.isActive))
 
   const res = await apiClient.post<{ data: Product }>('/api/v1/admin/products', formData, {
     headers: { 'Content-Type': 'multipart/form-data' },
